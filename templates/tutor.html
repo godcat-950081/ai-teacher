@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI English Tutor - 智能英语外教</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            padding: 30px 0;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .lesson-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+        
+        .image-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .image-upload:hover {
+            border-color: #1e3c72;
+            background: #f5f5f5;
+        }
+        
+        .image-upload input[type="file"] {
+            display: none;
+        }
+        
+        .image-preview {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2a5298;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-started;
+            transform: none;
+        }
+        
+        button.secondary {
+            background: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        
+        button.success {
+            background: #28a745;
+        }
+        
+        button.success:hover {
+            background: #218838;
+        }
+        
+        button.stage {
+            background: #17a2b8;
+            font-size: 0.9em;
+            padding: 8px 12px;
+        }
+        
+        button.stage:hover {
+            background: #138496;
+        }
+        
+        button.stage.active {
+            background: #0c5460;
+            font-weight: bold;
+        }
+        
+        .stage-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .status-preparing {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .status-ready {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-in-progress {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .status-completed {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .lesson-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .lesson-info h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .lesson-info ul {
+            list-style-position: inside;
+            color: #666;
+        }
+        
+        .lesson-info li {
+            margin: 5px 0;
+        }
+        
+        #teachingArea {
+            display: none;
+        }
+        
+        .teaching-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .teaching-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .transcript-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .transcript-entry {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .transcript-entry.ai {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .transcript-entry.user {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .transcript-entry .role {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .transcript-entry.ai .role {
+            color: #2196f3;
+        }
+        
+        .transcript-entry.user .role {
+            color: #9c27b0;
+        }
+        
+        .transcript-entry .content {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .transcript-entry .timestamp {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .audio-visualizer {
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #audioCanvas {
+            width: 100%;
+            height: 80px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .summary-area {
+            display: none;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .summary-area h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .summary-area .content {
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1e3c72;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 AI English Tutor</h1>
+            <p>Professional Native English Teacher - Powered by AI</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h2 class="section-title">Lesson Setup</h2>
+                
+                <div id="prepareArea">
+                    <div class="input-group">
+                        <label for="lessonText">Lesson Topic or Instructions</label>
+                        <textarea id="lessonText" rows="4" placeholder="Describe what you want to learn... 
+Examples:
+- 'I want to learn daily greetings and introductions'
+- 'Teach me business email writing'
+- 'Practice restaurant conversations'
+
+If uploading images: Please describe the content (e.g., 'This is page 5 about past tense verbs')"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Upload Images (Optional)</label>
+                        <div class="image-upload" id="imageUpload">
+                            <input type="file" id="imageInput" accept="image/*" multiple>
+                            <p>📷 Click to upload images</p>
+                            <small>Photos, textbook pages, etc.</small>
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    
+                    <button id="createLessonBtn" class="success">
+                        Create Lesson
+                    </button>
+                </div>
+                
+                <div id="lessonInfoArea" class="hidden">
+                    <div class="lesson-info">
+                        <p><strong>Lesson ID:</strong> <span id="lessonId">-</span></p>
+                        <p><strong>Status:</strong> <span id="lessonStatus" class="status-badge">-</span></p>
+                        <div id="lessonPlanDisplay" class="hidden">
+                            <h3>📋 Lesson Plan</h3>
+                            <p><strong>Topic:</strong> <span id="planTopic">-</span></p>
+                            <p><strong>Duration:</strong> <span id="planDuration">-</span> minutes</p>
+                            <p><strong>Objectives:</strong></p>
+                            <ul id="planObjectives"></ul>
+                        </div>
+                    </div>
+                    
+                    <button id="startLessonBtn" class="success" disabled>
+                        Start Lesson
+                    </button>
+                    <button id="newLessonBtn" class="secondary">
+                        New Lesson
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main Lesson Panel -->
+            <div class="lesson-panel">
+                <div id="welcomeArea">
+                    <h2 class="section-title">Welcome!</h2>
+                    <p style="color: #666; line-height: 1.8;">
+                        Welcome to your AI English Tutor!<br><br>
+                        
+                        <strong>How it works:</strong><br>
+                        1️⃣ Enter what you want to learn (text or images)<br>
+                        2️⃣ I'll prepare a personalized 20-minute lesson<br>
+                        3️⃣ We'll have a voice conversation where I teach and you practice<br>
+                        4️⃣ I'll correct your pronunciation and grammar in real-time<br>
+                        5️⃣ At the end, you'll get a performance summary<br><br>
+                        
+                        <strong>Tips:</strong><br>
+                        • Speak clearly and at a natural pace<br>
+                        • Don't worry about mistakes - that's how we learn!<br>
+                        • You can upload textbook pages, notes, or any images<br>
+                        • The lesson is about 20 minutes<br><br>
+                        
+                        Ready to start? Enter your lesson topic on the left! 🚀
+                    </p>
+                </div>
+                
+                <div id="teachingArea">
+                    <div class="teaching-header">
+                        <div class="teaching-status">
+                            <div class="status-indicator"></div>
+                            <span id="teachingStatusText">Lesson in Progress</span>
+                        </div>
+                        <div>
+                            <span id="lessonTimer">00:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="audio-visualizer">
+                        <canvas id="audioCanvas"></canvas>
+                    </div>
+                    
+                    <div class="transcript-area" id="transcriptArea">
+                        <p style="text-align: center; color: #999;">
+                            Conversation will appear here...
+                        </p>
+                    </div>
+                    
+                    <div class="stage-controls" id="stageControls" style="display: none;">
+                        <button class="stage" data-stage="vocabulary">
+                            📚 Vocabulary
+                        </button>
+                        <button class="stage" data-stage="article">
+                            📖 Article
+                        </button>
+                        <button class="stage" data-stage="question">
+                            ❓ Questions
+                        </button>
+                        <button class="stage" data-stage="review">
+                            ✅ Review
+                        </button>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="startRecordingBtn" class="success">
+                            🎤 Start Speaking
+                        </button>
+                        <button id="stopRecordingBtn" class="secondary" disabled>
+                            ⏹️ Stop
+                        </button>
+                        <button id="endLessonBtn" class="secondary">
+                            End Lesson
+                        </button>
+                    </div>
+                    
+                    <div class="summary-area" id="summaryArea">
+                        <h3>📊 Lesson Summary</h3>
+                        <div class="content" id="summaryContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/tutor.js"></script>
+</body>
+</html>

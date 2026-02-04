@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen-Omni-Realtime 测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        
+        .status-bar {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #4caf50;
+        }
+        
+        .status-dot.recording {
+            background: #f44336;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        button.danger {
+            background: #f44336;
+        }
+        
+        button.danger:hover {
+            background: #da190b;
+        }
+        
+        button.success {
+            background: #4caf50;
+        }
+        
+        button.success:hover {
+            background: #45a049;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-bottom: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #666;
+            padding-left: 10px;
+        }
+        
+        .log-entry.info {
+            border-color: #2196f3;
+        }
+        
+        .log-entry.success {
+            border-color: #4caf50;
+        }
+        
+        .log-entry.error {
+            border-color: #f44336;
+        }
+        
+        .log-entry.response {
+            border-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        .log-time {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .audio-visualization {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #audioVisualizer {
+            width: 100%;
+            height: 80px;
+            background: #fff;
+            border-radius: 5px;
+        }
+        
+        .settings-panel {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .settings-row label {
+            flex: 0 0 120px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        select, input[type="range"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        .response-display {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+        
+        .response-display h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .response-text {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Qwen-Omni-Realtime 测试</h1>
+        <p class="subtitle">实时音视频聊天 Demo</p>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">未连接</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot" id="recordingStatus"></div>
+                <span id="recordingText">未录音</span>
+            </div>
+        </div>
+        
+        <div class="settings-panel">
+            <h3>⚙️ 设置</h3>
+            <div class="settings-row">
+                <label>音色选择:</label>
+                <select id="voiceSelect">
+                    <optgroup label="女声">
+                        <option value="Cherry" selected>芊悦 Cherry - 阳光甜美</option>
+                        <option value="Serena">苏瑶 Serena - 温柔小姐姐</option>
+                        <option value="Chelsie">千雪 Chelsie - 二次元女友</option>
+                        <option value="Momo">茉兔 Momo - 撒娇搞怪</option>
+                        <option value="Vivian">十三 Vivian - 可爱小暴躁</option>
+                        <option value="Maia">四月 Maia - 知性温柔</option>
+                        <option value="Bella">萌宝 Bella - 小萝莉</option>
+                        <option value="Jennifer">詹妮弗 Jennifer - 美语女声</option>
+                    </optgroup>
+                    <optgroup label="男声">
+                        <option value="Ethan">晨煦 Ethan - 阳光活力</option>
+                        <option value="Ryan">甜茶 Ryan - 张力十足</option>
+                        <option value="Aiden">艾登 Aiden - 美语大男孩</option>
+                        <option value="Neil">阿闻 Neil - 新闻主持</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="settings-row">
+                <label>语言选择:</label>
+                <select id="languageSelect">
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="en">英文 (English)</option>
+                    <option value="ja">日语 (Japanese)</option>
+                    <option value="ko">韩语 (Korean)</option>
+                    <option value="es">西班牙语 (Spanish)</option>
+                    <option value="fr">法语 (French)</option>
+                </select>
+            </div>
+            <div class="settings-row">
+                <label>VAD模式:</label>
+                <select id="vadMode">
+                    <option value="server_vad">自动检测 (VAD)</option>
+                    <option value="manual">手动模式</option>
+                </select>
+            </div>
+            <div class="settings-row">
+                <label>输出格式:</label>
+                <select id="outputMode">
+                    <option value="text,audio">文本+音频</option>
+                    <option value="text">仅文本</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="connectBtn" class="success">
+                <span>🔌</span>
+                <span>连接服务</span>
+            </button>
+            <button id="startRecordBtn" disabled>
+                <span>🎤</span>
+                <span>开始录音</span>
+            </button>
+            <button id="stopRecordBtn" disabled class="danger">
+                <span>⏹️</span>
+                <span>停止录音</span>
+            </button>
+            <button id="clearLogBtn">
+                <span>🗑️</span>
+                <span>清空日志</span>
+            </button>
+        </div>
+        
+        <div class="audio-visualization">
+            <canvas id="audioVisualizer"></canvas>
+        </div>
+        
+        <div class="response-display">
+            <h3>💬 模型响应</h3>
+            <div class="response-text" id="responseText">等待模型响应...</div>
+        </div>
+        
+        <div class="log-container" id="logContainer">
+            <div class="log-entry info">
+                <span class="log-time">[系统]</span> 准备就绪，点击"连接服务"开始
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
